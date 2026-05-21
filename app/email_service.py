@@ -16,6 +16,8 @@ SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SMTP_FROM = os.getenv("SMTP_FROM")
 
+SMTP_TIMEOUT = float(os.getenv("SMTP_TIMEOUT", "30"))
+
 env = Environment(loader=FileSystemLoader("app/templates"))
 
 
@@ -36,12 +38,17 @@ async def send_email(to_email: str, subject: str, name: str):
 
     tls_context = ssl.create_default_context(cafile=certifi.where())
 
+    use_tls = SMTP_PORT == 465
+    start_tls = SMTP_PORT == 587
+
     await aiosmtplib.send(
         message,
         hostname=SMTP_HOST,
         port=SMTP_PORT,
-        start_tls=True,
+        use_tls=use_tls,
+        start_tls=start_tls,
         tls_context=tls_context,
+        timeout=SMTP_TIMEOUT,
         username=SMTP_USER,
         password=SMTP_PASSWORD,
     )
